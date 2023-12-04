@@ -1,35 +1,48 @@
+// external packages
 const express = require('express');
-const bodyParser = require('body-parser');
 
-const app = express();
-const port = process.env.PORT || 3000;
+// Start the webapp
+const webApp = express();
 
-app.use(bodyParser.json());
+// Webapp settings
+webApp.use(express.urlencoded({
+    extended: true
+}));
+webApp.use(express.json());
 
-app.post('/webhook', (req, res) => {
-  const intent = req.body.queryResult.intent.displayName;
+// Server Port
+const PORT = 5000;
 
-  if (intent === 'BackToPreviousQuestionIntent') {
-    // 「前の質問に戻る」に対する処理を実装
-
-    // 例: 前の質問のContextを復元する
-    const context = {
-      name: 'previousQuestionContext',
-      lifespanCount: 1
-    };
-
-    const response = {
-      fulfillmentText: '前の質問に戻ります。',
-      outputContexts: [context]
-    };
-
-    res.json(response);
-  } else {
-    // その他のIntentに対するデフォルトの処理
-    res.json({ fulfillmentText: '処理が完了しました' });
-  }
+// Home route
+webApp.get('/', (req, res) => {
+    res.send(`Hello World.!`);
 });
 
-app.listen(port, () => {
-  console.log(`Webhook listening on port ${port}`);
+webApp.post('/dialogflow', (req, res) => {
+
+    console.log(JSON.stringify(req.body.queryResult.outputContexts));
+
+    let session = req.body.session;
+
+    // Any logic
+
+    let context_name = `${session}/contexts/await_second`;
+
+    res.send({
+        fulfillmentText: 'Hello from the webhook.',
+        outputContexts: [
+            {
+                name: context_name,
+                lifespanCount: 1,
+                parameters: {
+                    name: 'Raj'
+                }
+            }
+        ]
+    });
+});
+
+// Start the server
+webApp.listen(PORT, () => {
+    console.log(`Server is up and running at ${PORT}`);
 });
